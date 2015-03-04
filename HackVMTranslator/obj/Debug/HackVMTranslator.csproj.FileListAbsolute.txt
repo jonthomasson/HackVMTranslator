@@ -1,0 +1,9 @@
+c:\users\jthomasson\documents\visual studio 2013\Projects\HackVMTranslator\HackVMTranslator\bin\Debug\HackVMTranslator.exe.config
+c:\users\jthomasson\documents\visual studio 2013\Projects\HackVMTranslator\HackVMTranslator\obj\Debug\HackVMTranslator.csprojResolveAssemblyReference.cache
+c:\users\jthomasson\documents\visual studio 2013\Projects\HackVMTranslator\HackVMTranslator\obj\Debug\HackVMTranslator.Properties.Resources.resources
+c:\users\jthomasson\documents\visual studio 2013\Projects\HackVMTranslator\HackVMTranslator\obj\Debug\HackVMTranslator.csproj.GenerateResource.Cache
+c:\users\jthomasson\documents\visual studio 2013\Projects\HackVMTranslator\HackVMTranslator\bin\Debug\HackVMTranslator.exe
+c:\users\jthomasson\documents\visual studio 2013\Projects\HackVMTranslator\HackVMTranslator\bin\Debug\HackVMTranslator.pdb
+c:\users\jthomasson\documents\visual studio 2013\Projects\HackVMTranslator\HackVMTranslator\obj\Debug\HackVMTranslator.exe
+c:\users\jthomasson\documents\visual studio 2013\Projects\HackVMTranslator\HackVMTranslator\obj\Debug\HackVMTranslator.pdb
+c:\users\jthomasson\documents\visual studio 2013\Projects\HackVMTranslator\HackVMTranslator\obj\Debug\HackVMTranslator.Form1.resources
