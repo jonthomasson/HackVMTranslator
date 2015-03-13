@@ -154,7 +154,7 @@ namespace HackVMTranslator
         private void toolStripButton3_Click(object sender, EventArgs e)
         {
             //read one line at a time from rtbSource and parse it with appropriate modules
-
+            rtbDestination.Clear();
             ParseFile();
 
 

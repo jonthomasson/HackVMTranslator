@@ -10,6 +10,7 @@ namespace HackVMTranslator.Modules
     public class CodeWriter
     {
         private StringBuilder Code { get; set; }
+        private int _Id = 0;
 
         public CodeWriter()
         {
@@ -25,6 +26,8 @@ namespace HackVMTranslator.Modules
             Code.AppendLine("D=A");
             Code.AppendLine("@SP");
             Code.AppendLine("M=D");
+
+            _Id = 0;
         }
 
         public void SetFileName(string fileName){
@@ -96,6 +99,7 @@ namespace HackVMTranslator.Modules
                 //2. not the output
                 //3. if output is 0 then false anything else then true
                 //http://nand2tetris-questions-and-answers-forum.32033.n3.nabble.com/What-is-true-And-what-is-false-td4025881.html
+                //http://nand2tetris-questions-and-answers-forum.32033.n3.nabble.com/Logical-operations-td72625.html#a862659
 
                 Code.AppendLine("@SP");     //popping current SP - 1
                 Code.AppendLine("M=M-1");    //SP is now 257
@@ -106,18 +110,18 @@ namespace HackVMTranslator.Modules
                 Code.AppendLine("A=M");
                 Code.AppendLine("D=D-M");    //do subtraction
                 //if d > 0 
-                Code.AppendLine("@ISEQ");
+                Code.AppendLine("@ISEQ" + _Id);
                 Code.AppendLine("D;JEQ");
                 //else  SET D = 0 //false
                 Code.AppendLine("D=0");
-                Code.AppendLine("@NOTEQ");
+                Code.AppendLine("@NOTEQ" + _Id);
                 Code.AppendLine("0;JMP");
 
                 //set D = -1 //true
-                Code.AppendLine("(ISEQ)");
+                Code.AppendLine("(ISEQ" + _Id + ")");
                 Code.AppendLine("D=-1");
 
-                Code.AppendLine("(NOTEQ)");
+                Code.AppendLine("(NOTEQ" + _Id + ")");
 
                 Code.AppendLine("@SP");      //push result to SP ram[256]
                 Code.AppendLine("A=M");
@@ -141,18 +145,18 @@ namespace HackVMTranslator.Modules
                 Code.AppendLine("A=M");
                 Code.AppendLine("D=D-M");    //do subtraction
                 //if d > 0 
-                Code.AppendLine("@ISGT");
+                Code.AppendLine("@ISGT" + _Id);
                 Code.AppendLine("D;JLT");
                 //else  SET D = 0 //false
                 Code.AppendLine("D=0");
-                Code.AppendLine("@NOTGT");
+                Code.AppendLine("@NOTGT" + _Id);
                 Code.AppendLine("0;JMP");
 
                 //set D = -1 //true
-                Code.AppendLine("(ISGT)");
+                Code.AppendLine("(ISGT" + _Id + ")");
                 Code.AppendLine("D=-1");
 
-                Code.AppendLine("(NOTGT)");
+                Code.AppendLine("(NOTGT" + _Id + ")");
 
                 Code.AppendLine("@SP");      //push result to SP ram[256]
                 Code.AppendLine("A=M");
@@ -176,18 +180,18 @@ namespace HackVMTranslator.Modules
                 Code.AppendLine("A=M");
                 Code.AppendLine("D=D-M");    //do subtraction
                 //if d > 0 
-                Code.AppendLine("@ISLT");
+                Code.AppendLine("@ISLT" + _Id);
                 Code.AppendLine("D;JGT");
                 //else  SET D = 0 //false
                 Code.AppendLine("D=0");
-                Code.AppendLine("@NOTLT");
+                Code.AppendLine("@NOTLT" + _Id);
                 Code.AppendLine("0;JMP");
 
                 //set D = -1 //true
-                Code.AppendLine("(ISLT)");
+                Code.AppendLine("(ISLT" + _Id + ")");
                 Code.AppendLine("D=-1");
 
-                Code.AppendLine("(NOTLT)");
+                Code.AppendLine("(NOTLT" + _Id + ")");
 
                 Code.AppendLine("@SP");      //push result to SP ram[256]
                 Code.AppendLine("A=M");
@@ -241,6 +245,7 @@ namespace HackVMTranslator.Modules
                 Code.AppendLine("@SP");
                 Code.AppendLine("M=M+1");    //increment after push SP now = 257
             }
+            _Id++; //increment our unique id for labels/symbols
         }
 
         public string ToString()
