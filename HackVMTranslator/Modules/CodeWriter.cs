@@ -288,10 +288,11 @@ namespace HackVMTranslator.Modules
                     Code.AppendLine("@" + index); //set A to value of index
                     Code.AppendLine("D=A"); //Set D reg to A
                     Code.AppendLine("@ARG"); //the value at @ARG
-                    Code.AppendLine("D=M"); //set D to RAM[@ARG]
+                    Code.AppendLine("D=D+M"); //set D to RAM[@ARG] + index
 
-                    Code.AppendLine("A=D+A"); //A = value of arg plus index
-                    Code.AppendLine("D=M"); //Assign reg D to memory address of @ARG  + index
+                    //get RAM[D]
+                    Code.AppendLine("A=D");
+                    Code.AppendLine("D=M");
 
                     //push onto stack
                     Code.AppendLine("@SP");
