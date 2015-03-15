@@ -66,7 +66,7 @@ namespace HackVMTranslator.Modules
                 Code.AppendLine("@SP");      //pop again
                 Code.AppendLine("M=M-1");    //SP is now 256
                 Code.AppendLine("A=M");
-                Code.AppendLine("D=D-M");    //do subtraction
+                Code.AppendLine("D=M-D");    //do subtraction
                 Code.AppendLine("@SP");      //push result to SP ram[256]
                 Code.AppendLine("A=M");
                 Code.AppendLine("M=D");
@@ -279,12 +279,60 @@ namespace HackVMTranslator.Modules
             }
             else if (segment == "argument")
             {
+                //use @ARG as the pointer to the ram
+                if (command == Enumerations.CommandType.C_PUSH)
+                {
+                    //push the value of argument[index] onto the stack
+                    //get value of argument[index] and put in register D
+
+                    Code.AppendLine("@" + index); //set A to value of index
+                    Code.AppendLine("D=A"); //Set D reg to A
+                    Code.AppendLine("@ARG"); //the value at @ARG
+                    Code.AppendLine("D=M"); //set D to RAM[@ARG]
+
+                    Code.AppendLine("A=D+A"); //A = value of arg plus index
+                    Code.AppendLine("D=M"); //Assign reg D to memory address of @ARG  + index
+
+                    //push onto stack
+                    Code.AppendLine("@SP");
+                    Code.AppendLine("A=M");
+                    Code.AppendLine("M=D");
+                    Code.AppendLine("@SP");
+                    Code.AppendLine("M=M+1"); //increment stack pointer
+                }
+                else if (command == Enumerations.CommandType.C_POP)
+                {
+                    //pop the top stack value and store it in argument[index]
+                    Code.AppendLine("@SP");
+                    Code.AppendLine("M=M-1");
+                    Code.AppendLine("A=D"); //set A = D
+                    Code.AppendLine("D=A"); //store value in D
+                    Code.AppendLine("@R13"); //set A to R13
+                    Code.AppendLine("M=D"); //set RAM[13] to D
+
+                    //store in argument[index]
+                    Code.AppendLine("@" + index);
+                    //Code.AppendLine("A=M"); //set A = RAM[index]
+                   
+                    Code.AppendLine("D=A"); //Set D reg to A
+
+                    Code.AppendLine("@ARG"); //the value at @ARG
+                    Code.AppendLine("A=D+M"); //A = value of arg plus index
+                    Code.AppendLine("D=A"); 
+                    Code.AppendLine("@R14"); //put value of arg plus index in R14
+                    Code.AppendLine("M=D");   //RAM[14] = D
+                    //now put value of R14 into memory address that R14 points to
+                    //first put R13 into reg D
+                    Code.AppendLine("@R13");
+                    Code.AppendLine("D=M");
+                    //next put value at R13 into RAM[R14]
+                    Code.AppendLine("@R14");
+                    Code.AppendLine("A=M");
+                    Code.AppendLine("M=D"); //memory of RAM[A] = reg D
+                    
+                }
 
             }else if (segment == "local")
-            {
-
-            }
-            else if (segment == "static")
             {
 
             }
@@ -293,6 +341,10 @@ namespace HackVMTranslator.Modules
 
             }
             else if (segment == "that")
+            {
+
+            }
+            else if (segment == "static")
             {
 
             }

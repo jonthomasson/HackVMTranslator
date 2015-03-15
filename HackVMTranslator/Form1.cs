@@ -136,7 +136,7 @@ namespace HackVMTranslator
                         //process arithmetic command
                         cw.WriteArithmetic(prsr.Arg1);
                     }
-                    else if (prsr.CommandType == Enums.Enumerations.CommandType.C_PUSH || prsr.CommandType == Enums.Enumerations.CommandType.C_PUSH)
+                    else if (prsr.CommandType == Enums.Enumerations.CommandType.C_PUSH || prsr.CommandType == Enums.Enumerations.CommandType.C_POP)
                     {
                         cw.WritePushPop(prsr.CommandType, prsr.Arg1, int.Parse(prsr.Arg2));
                     }
