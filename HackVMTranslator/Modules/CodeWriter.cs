@@ -508,7 +508,37 @@ namespace HackVMTranslator.Modules
             }
             else if (segment == "pointer")
             {
+                 //setting pointer 0 updates THIS pointer R3
+                //setting pointer 1 updates THAT pointer R4
+                var ptrFor = index == 0 ? "R3" : "R4";     //determine whether pointer is for THIS (R3) or THAT (R4)
 
+                if (command == Enumerations.CommandType.C_PUSH)
+                {
+                    //push command (pushes the value of either THIS or THAT pointer onto top of stack
+                    
+
+                    //set A to appropriate pointer
+                    Code.AppendLine("@" + ptrFor);
+                    Code.AppendLine("D=M"); //set D to RAM[ptrFor]
+                    //now push value in D onto stack and increment SP
+                    //push onto stack
+                    Code.AppendLine("@SP");
+                    Code.AppendLine("A=M");
+                    Code.AppendLine("M=D");
+                    Code.AppendLine("@SP");
+                    Code.AppendLine("M=M+1"); //increment stack pointer
+                }
+                else if (command == Enumerations.CommandType.C_POP)
+                {
+                    //pop command pops the value off the stack and puts it in either THIS or THAT pointer
+                    
+                    Code.AppendLine("@SP");
+                    Code.AppendLine("M=M-1");  //decrement the sp
+                    Code.AppendLine("A=M"); //set A = Ram[sp]  
+                    Code.AppendLine("D=M"); //store value Ram[sp] in D
+                    Code.AppendLine("@" + ptrFor); //set A to pointer
+                    Code.AppendLine("M=D"); //set RAM[ptrFor] to D
+                }
             }
             else if (segment == "temp")
             {
