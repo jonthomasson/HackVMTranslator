@@ -119,6 +119,7 @@ namespace HackVMTranslator
             {
                 var prsr = new Parser(_fileName);
                 var cw = new CodeWriter();
+                cw.SetFileName(System.IO.Path.GetFileName(_fileName));
                 var sbuilder = new StringBuilder(); //used to hold our output
                 var sbsource = new StringBuilder();
 
@@ -139,6 +140,31 @@ namespace HackVMTranslator
                     else if (prsr.CommandType == Enums.Enumerations.CommandType.C_PUSH || prsr.CommandType == Enums.Enumerations.CommandType.C_POP)
                     {
                         cw.WritePushPop(prsr.CommandType, prsr.Arg1, int.Parse(prsr.Arg2));
+                    }
+                    else if (prsr.CommandType == Enums.Enumerations.CommandType.C_GOTO)
+                    {
+                        cw.WriteGoto(prsr.Arg1);
+                    }
+                    else if (prsr.CommandType == Enums.Enumerations.CommandType.C_IF)
+                    {
+                        cw.WriteIf(prsr.Arg1);
+                    }
+                    else if (prsr.CommandType == Enums.Enumerations.CommandType.C_LABEL)
+                    {
+                        cw.WriteLabel(prsr.Arg1);
+                    }
+                    else if (prsr.CommandType == Enums.Enumerations.CommandType.C_RETURN)
+                    {
+                        cw.WriteReturn();
+                    }
+                    else if (prsr.CommandType == Enums.Enumerations.CommandType.C_CALL)
+                    {
+                        cw.WriteCall(prsr.Arg1, int.Parse(prsr.Arg2));
+                    }
+                    else if (prsr.CommandType == Enums.Enumerations.CommandType.C_FUNCTION)
+                    {
+                        cw.SetFunctionName(prsr.Arg1);
+                        cw.WriteFunction(prsr.Arg1, int.Parse(prsr.Arg2));
                     }
 
                 }

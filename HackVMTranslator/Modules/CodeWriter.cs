@@ -10,6 +10,8 @@ namespace HackVMTranslator.Modules
     public class CodeWriter
     {
         private StringBuilder Code { get; set; }
+        private string FileName { get; set; }
+        private string FunctionName { get; set; }
         private int _Id = 0;
 
         public CodeWriter()
@@ -18,6 +20,9 @@ namespace HackVMTranslator.Modules
             InitCode();
         }
 
+        /// <summary>
+        /// this code is used to setup our stack pointer and memory locations.
+        /// </summary>
         private void InitCode()
         {
             //setup stack pointer
@@ -30,8 +35,35 @@ namespace HackVMTranslator.Modules
             _Id = 0;
         }
 
+        /// <summary>
+        /// Sets the file name for the current command block.
+        /// This is mainly used in writing unique labels
+        /// </summary>
+        /// <param name="fileName"></param>
         public void SetFileName(string fileName){
+            FileName = fileName;
+        }
 
+        /// <summary>
+        /// Sets the function name for the current command block.
+        /// This is mainly used in writing unique labels.
+        /// </summary>
+        /// <param name="functionName"></param>
+        public void SetFunctionName(string functionName)
+        {
+            FunctionName = functionName;
+        }
+
+        /// <summary>
+        /// handles parsing the label name together with the class/function names
+        /// </summary>
+        /// <param name="label"></param>
+        /// <returns></returns>
+        public string GetLabelName(string label)
+        {
+            var labelName = FileName.Split('.')[0] + (string.IsNullOrEmpty(FunctionName) ? "" : "." + FunctionName) + "$" + label;
+
+            return labelName;
         }
 
         /// <summary>
@@ -648,6 +680,83 @@ namespace HackVMTranslator.Modules
 
                 }
             }
+        }
+
+        /// <summary>
+        /// writes assembly code that effects the goto command.
+        /// </summary>
+        /// <param name="label"></param>
+        public void WriteGoto(string label)
+        {
+
+        }
+
+        /// <summary>
+        /// writes assembly code that effects the label command.
+        /// </summary>
+        /// <param name="label"></param>
+        public void WriteLabel(string label)
+        {
+            Code.AppendLine("(" + GetLabelName(label) + ")");  
+        }
+
+        /// <summary>
+        /// writes assembly code that effects the VM initialization, also called bootstrap code. 
+        /// This code must be placed at the beginning of the output file.
+        /// </summary>
+        public void WriteInit()
+        {
+
+        }
+
+        /// <summary>
+        /// writes assembly code that effects the if-goto command.
+        /// </summary>
+        /// <param name="label"></param>
+        public void WriteIf(string label)
+        {
+            //need to pop last value off stack and see if it's 0.
+            //if it's > 0, go to the loop start for specified label
+            Code.AppendLine("@SP"); //get SP pointer
+            Code.AppendLine("A=M-1"); //set D = RAM[SP] - 1
+            //not sure why, but seems like we need to decrement stack pointer here... in order to match emulator
+            Code.AppendLine("D=A");
+            Code.AppendLine("@SP");
+            Code.AppendLine("M=M-1");
+            Code.AppendLine("A=M");
+           
+            Code.AppendLine("D=M");
+            Code.AppendLine("@" + GetLabelName(label));
+            Code.AppendLine("D;JGT");
+
+        }
+
+        /// <summary>
+        /// writes assembly code that effects the call command.
+        /// </summary>
+        /// <param name="functionName"></param>
+        /// <param name="numArgs"></param>
+        public void WriteCall(string functionName, int numArgs)
+        {
+
+        }
+
+        /// <summary>
+        /// writes assembly code that effects the return command.
+        /// </summary>
+        public void WriteReturn()
+        {
+
+        }
+
+        /// <summary>
+        /// writes assembly code that effects the function command.
+        /// </summary>
+        /// <param name="functionName"></param>
+        /// <param name="numLocals"></param>
+        public void WriteFunction(string functionName, int numLocals)
+        {
+
         }
 
         public void Close()

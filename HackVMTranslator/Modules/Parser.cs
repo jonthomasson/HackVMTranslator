@@ -43,7 +43,7 @@ namespace HackVMTranslator
             {
                 CurrentCommand = "";
             }
-            bool isComment = CurrentCommand.Contains("//");
+            bool isComment = CurrentCommand.StartsWith("//");
             while (isComment || string.IsNullOrWhiteSpace(CurrentCommand))
             {
                 CurrentCommand = _sr.ReadLine();
@@ -51,7 +51,7 @@ namespace HackVMTranslator
                 {
                     CurrentCommand = "";
                 }
-                isComment = CurrentCommand.Contains("//");
+                isComment = CurrentCommand.StartsWith("//");
             }
 
             HasMoreCommands = !_sr.EndOfStream;
@@ -81,6 +81,21 @@ namespace HackVMTranslator
                 CommandType = Enums.Enumerations.CommandType.C_POP;
                 Arg1 = command.Split(' ')[1];
                 Arg2 = command.Split(' ')[2];
+            }
+            else if (command.Contains("label"))
+            {
+                CommandType = Enums.Enumerations.CommandType.C_LABEL;
+                Arg1 = command.Split(' ')[1];
+            }
+            else if (command.Contains("if-goto"))
+            {
+                CommandType = Enums.Enumerations.CommandType.C_IF;
+                Arg1 = command.Split(' ')[1];
+            }
+            else if (command.Contains("goto"))
+            {
+                CommandType = Enums.Enumerations.CommandType.C_GOTO;
+                Arg1 = command.Split(' ')[1];
             }
 
         }
