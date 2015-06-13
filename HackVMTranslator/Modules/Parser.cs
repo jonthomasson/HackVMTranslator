@@ -97,6 +97,16 @@ namespace HackVMTranslator
                 CommandType = Enums.Enumerations.CommandType.C_GOTO;
                 Arg1 = command.Split(' ')[1];
             }
+             else if (command.Contains("function"))
+            {
+                CommandType = Enums.Enumerations.CommandType.C_FUNCTION;
+                Arg1 = command.Split(' ')[1];  //the function name
+                Arg2 = command.Split(' ')[2];  //this should be the number of arguments to pass
+            }
+            else if (command.Contains("return"))
+            {
+                CommandType = Enums.Enumerations.CommandType.C_RETURN;
+            }
 
         }
 

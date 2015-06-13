@@ -156,6 +156,7 @@ namespace HackVMTranslator
                     else if (prsr.CommandType == Enums.Enumerations.CommandType.C_RETURN)
                     {
                         cw.WriteReturn();
+                        cw.SetFunctionName("");
                     }
                     else if (prsr.CommandType == Enums.Enumerations.CommandType.C_CALL)
                     {
@@ -163,7 +164,7 @@ namespace HackVMTranslator
                     }
                     else if (prsr.CommandType == Enums.Enumerations.CommandType.C_FUNCTION)
                     {
-                        cw.SetFunctionName(prsr.Arg1);
+                        cw.SetFunctionName(prsr.Arg1.Split('.')[1]);
                         cw.WriteFunction(prsr.Arg1, int.Parse(prsr.Arg2));
                     }
 

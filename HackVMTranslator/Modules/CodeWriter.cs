@@ -17,7 +17,7 @@ namespace HackVMTranslator.Modules
         public CodeWriter()
         {
             //initialize code
-            InitCode();
+            InitCode(); 
         }
 
         /// <summary>
@@ -27,10 +27,10 @@ namespace HackVMTranslator.Modules
         {
             //setup stack pointer
             Code = new StringBuilder();
-            Code.AppendLine("@256");
-            Code.AppendLine("D=A");
-            Code.AppendLine("@SP");
-            Code.AppendLine("M=D");
+            //Code.AppendLine("@256");     //commenting out these for now since it's handled by the test script
+            //Code.AppendLine("D=A");
+            //Code.AppendLine("@SP");
+            //Code.AppendLine("M=D");
 
             _Id = 0;
         }
@@ -688,7 +688,8 @@ namespace HackVMTranslator.Modules
         /// <param name="label"></param>
         public void WriteGoto(string label)
         {
-
+            Code.AppendLine("@" + GetLabelName(label));
+            Code.AppendLine("0;JMP");
         }
 
         /// <summary>
@@ -706,6 +707,9 @@ namespace HackVMTranslator.Modules
         /// </summary>
         public void WriteInit()
         {
+           //set SP = 256
+           //call Sys.Init
+
 
         }
 
@@ -733,6 +737,9 @@ namespace HackVMTranslator.Modules
 
         /// <summary>
         /// writes assembly code that effects the call command.
+        /// helpful post: http://nand2tetris-questions-and-answers-forum.32033.n3.nabble.com/Should-every-return-address-be-unique-td4027043.html
+        /// see also page 18: http://nand2tetris.org/lectures/PDF/lecture%2008%20virtual%20machine%20II.pdf
+        /// also: http://nand2tetris-questions-and-answers-forum.32033.n3.nabble.com/Global-Stack-Clarification-td4026677.html
         /// </summary>
         /// <param name="functionName"></param>
         /// <param name="numArgs"></param>
@@ -743,19 +750,125 @@ namespace HackVMTranslator.Modules
 
         /// <summary>
         /// writes assembly code that effects the return command.
+        /// helpful post: http://nand2tetris-questions-and-answers-forum.32033.n3.nabble.com/return-address-value-td4027671.html
+        /// see also page 20: http://nand2tetris.org/lectures/PDF/lecture%2008%20virtual%20machine%20II.pdf
+        /// also: http://nand2tetris-questions-and-answers-forum.32033.n3.nabble.com/Global-Stack-Clarification-td4026677.html
         /// </summary>
         public void WriteReturn()
-        {
+        {   //from page 20 of  http://nand2tetris.org/lectures/PDF/lecture%2008%20virtual%20machine%20II.pdf
+            //// In the course of implementing the code of g,
+            //// we arrive to the command return.
+            //// We assume that a retuurn value has been pushed
+            //// onto the stack.
+            //// We effect the following logic:
+            //frame = LCL // frame is a temp. variable
+            //retAddr = *(frame-5) // retAddr is a temp. variable
+            //*ARG = pop // repositions the return value
+            // for the caller
+            //SP=ARG+1 // restores the caller’s SP
+            //THAT = *(frame-1) // restores the caller’s THAT
+            //THIS = *(frame-2) // restores the caller’s THIS
+            //ARG = *(frame-3) // restores the caller’s ARG
+            //LCL = *(frame-4) // restores the caller’s LCL
+            //goto retAddr // goto returnAddress
+
+            Code.AppendLine("@LCL"); //starting to setup frame
+            Code.AppendLine("D=M");
+            Code.AppendLine("@R5"); //setting to temp var 5
+            Code.AppendLine("M=D"); //set R5 to LCL
+
+            Code.AppendLine("@R5"); 
+            Code.AppendLine("D=M");
+            Code.AppendLine("@5"); //temp var R6 to hold ret address  (frame - 5)
+            Code.AppendLine("A=D-A");
+            Code.AppendLine("D=M");
+            Code.AppendLine("@R6");
+            Code.AppendLine("M=D"); //set R6 to ret address
+
+            //make ARG a pointer to the memory address of pop()
+            //1. pop current value off the stack (this should be the value that is returned from the current function)
+            //2. set value at ARG 0 to popped value
+            WritePushPop(Enumerations.CommandType.C_POP, "argument", 0);
+
+            //restore SP to the callers SP (ARG + 1)
+            Code.AppendLine("@ARG");
+            Code.AppendLine("D=M");
+            Code.AppendLine("@SP");
+            Code.AppendLine("M=D+1");
+
+            //restore that
+            Code.AppendLine("@R5"); //R5 holds the frame pointer
+            Code.AppendLine("D=M"); 
+            Code.AppendLine("@1");
+            Code.AppendLine("A=D-A");
+            Code.AppendLine("D=M");
+            Code.AppendLine("@THAT");
+            Code.AppendLine("M=D");  //set THAT to frame - 1
+
+                //restore this
+            Code.AppendLine("@R5"); //R5 holds the frame pointer
+            Code.AppendLine("D=M");
+            Code.AppendLine("@2");
+            Code.AppendLine("A=D-A");
+            Code.AppendLine("D=M");
+            Code.AppendLine("@THIS");
+            Code.AppendLine("M=D");  //set THIS to frame - 2
+
+            //restore arg
+            Code.AppendLine("@R5"); //R5 holds the frame pointer
+            Code.AppendLine("D=M");
+            Code.AppendLine("@3");
+            Code.AppendLine("A=D-A");
+            Code.AppendLine("D=M");
+            Code.AppendLine("@ARG");
+            Code.AppendLine("M=D");  //set ARG to frame - 3
+
+            //restore lcl
+            Code.AppendLine("@R5"); //R5 holds the frame pointer
+            Code.AppendLine("D=M");
+            Code.AppendLine("@4");
+            Code.AppendLine("A=D-A");
+            Code.AppendLine("D=M");
+            Code.AppendLine("@LCL");
+            Code.AppendLine("M=D");  //set LCL to frame - 4
+
+           
 
         }
 
         /// <summary>
         /// writes assembly code that effects the function command.
+        /// helpful posts: http://nand2tetris-questions-and-answers-forum.32033.n3.nabble.com/Think-I-did-something-wrong-td4027182.html
+        /// see also page 19: http://nand2tetris.org/lectures/PDF/lecture%2008%20virtual%20machine%20II.pdf
+        /// and page 163 in book.
         /// </summary>
-        /// <param name="functionName"></param>
-        /// <param name="numLocals"></param>
+        /// <param name="functionName">the name of the function</param>
+        /// <param name="numLocals">the number of local variables that have been pushed onto the stack by the caller</param>
         public void WriteFunction(string functionName, int numLocals)
-        {
+        {    
+            //see pg 163. 
+            //(f)                    //declare a label for the function entry
+            //  repeat k times:      //k = number of local variables
+            //  push 0               //initialize all of them to 0
+
+             //need to loop through numLocals and initialize local variables to 0
+             //for(int i=0; i < numLocals.length; i++){
+             //     push contant 0
+             //}
+             //todo: refactor: possibly use temp section to store numLocals?
+             Code.AppendLine("(" + functionName + ")");   //declare unique label for function starting point
+             
+             Code.AppendLine("@" + numLocals);
+             Code.AppendLine("D=A");
+             Code.AppendLine("@" + GetLabelName("numLocals")); //declare ram space to hold my numLocals variable
+             Code.AppendLine("M=D");  //numLocals = numLocals
+             WriteLabel("loopargs");   //begin loop
+             WritePushPop(Enumerations.CommandType.C_PUSH, "constant", 0);  //push 0
+             Code.AppendLine("@" + GetLabelName("numLocals"));
+             Code.AppendLine("M=M-1"); //decrement numLocals in RAM
+             Code.AppendLine("D=M");
+             Code.AppendLine("@" + GetLabelName("loopargs"));//if D > 0 then jump back to loopargs label
+             Code.AppendLine("D;JGT");
 
         }
 
