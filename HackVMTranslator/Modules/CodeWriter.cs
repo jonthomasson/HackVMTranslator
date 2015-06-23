@@ -17,7 +17,12 @@ namespace HackVMTranslator.Modules
         public CodeWriter()
         {
             //initialize code
-            InitCode(); 
+            FileName = "";
+            FunctionName = "";
+
+            InitCode();
+
+            //WriteInit();
         }
 
         /// <summary>
@@ -67,7 +72,7 @@ namespace HackVMTranslator.Modules
         }
 
         /// <summary>
-        /// writes artmetic code for a given command. Note: later on will want to come back here and make these more efficient probably.
+        /// writes arithmetic code for a given command. Note: later on will want to come back here and make these more efficient probably.
         /// </summary>
         /// <param name="command"></param>
         public void WriteArithmetic(string command)
@@ -708,8 +713,13 @@ namespace HackVMTranslator.Modules
         public void WriteInit()
         {
            //set SP = 256
-           //call Sys.Init
+            //Code.AppendLine("@256");
+            //Code.AppendLine("D=A");
+            //Code.AppendLine("@SP");
+            //Code.AppendLine("M=D");
 
+            //call Sys.Init
+            //WriteCall("Sys.init", 0);
 
         }
 
@@ -745,7 +755,89 @@ namespace HackVMTranslator.Modules
         /// <param name="numArgs"></param>
         public void WriteCall(string functionName, int numArgs)
         {
+            //// In the course of implementing the code of f
+            //// (the caller), we arrive to the command call g nArgs.
+            //// we assume that nArgs arguments have been pushed
+            //// onto the stack. What do we do next?
+            //// We generate a symbol, let’s call it returnAddress;
+            //// Next, we effect the following logic:
+            //push returnAddress // saves the return address
+            //push LCL // saves the LCL of f
+            //push ARG // saves the ARG of f
+            //push THIS // saves the THIS of f
+            //push THAT // saves the THAT of f
+            //ARG = SP-nArgs-5 // repositions SP for g
+            //LCL = SP // repositions LCL for g
+            //goto g // transfers control to g
+            //returnAddress: // the generated symbol
 
+            //first we'll generate a return label
+            WriteLabel("call" + _Id);
+
+            Code.AppendLine("@" + GetLabelName("call" + _Id));  //push return address
+            Code.AppendLine("D=A");
+            Code.AppendLine("@SP");
+            Code.AppendLine("A=M");
+            Code.AppendLine("M=D");
+            Code.AppendLine("@SP");
+            Code.AppendLine("M=M+1");
+
+            Code.AppendLine("@LCL"); //push LCL
+            Code.AppendLine("D=M");
+            Code.AppendLine("@SP");
+            Code.AppendLine("A=M");
+            Code.AppendLine("M=D");
+            Code.AppendLine("@SP");
+            Code.AppendLine("M=M+1");
+
+            Code.AppendLine("@ARG"); //push ARG
+            Code.AppendLine("D=M");
+            Code.AppendLine("@SP");
+            Code.AppendLine("A=M");
+            Code.AppendLine("M=D");
+            Code.AppendLine("@SP");
+            Code.AppendLine("M=M+1");
+
+            Code.AppendLine("@THIS"); //push THIS
+            Code.AppendLine("D=M");
+            Code.AppendLine("@SP");
+            Code.AppendLine("A=M");
+            Code.AppendLine("M=D");
+            Code.AppendLine("@SP");
+            Code.AppendLine("M=M+1");
+
+            Code.AppendLine("@THAT"); //push THAT
+            Code.AppendLine("D=M");
+            Code.AppendLine("@SP");
+            Code.AppendLine("A=M");
+            Code.AppendLine("M=D");
+            Code.AppendLine("@SP");
+            Code.AppendLine("M=M+1");
+
+            Code.AppendLine("@" + numArgs); //ARG = SP-nArgs-5 // repositions SP for g
+            Code.AppendLine("D=A");
+            Code.AppendLine("@5"); 
+            Code.AppendLine("A=A+D");
+            Code.AppendLine("D=A");
+            Code.AppendLine("@SP");
+            Code.AppendLine("A=M-D");
+            Code.AppendLine("D=A");
+            Code.AppendLine("@ARG");
+            Code.AppendLine("M=D");
+
+            Code.AppendLine("@SP"); //LCL = SP
+            Code.AppendLine("D=M");
+            Code.AppendLine("@LCL");
+            Code.AppendLine("M=D");
+
+            Code.AppendLine("@" + functionName);  //goto g
+            Code.AppendLine("0;JMP");
+
+            Code.AppendLine("@" +  GetLabelName("call" + _Id));     //return to address label above
+            Code.AppendLine("0;JMP");
+            Code.AppendLine("(" + GetLabelName("call" + _Id) + ")");
+
+            _Id++;
         }
 
         /// <summary>
@@ -774,16 +866,16 @@ namespace HackVMTranslator.Modules
 
             Code.AppendLine("@LCL"); //starting to setup frame
             Code.AppendLine("D=M");
-            Code.AppendLine("@R5"); //setting to temp var 5
+            Code.AppendLine("@R8"); //setting to temp var 8
             Code.AppendLine("M=D"); //set R5 to LCL
 
-            Code.AppendLine("@R5"); 
+            Code.AppendLine("@R8"); 
             Code.AppendLine("D=M");
             Code.AppendLine("@5"); //temp var R6 to hold ret address  (frame - 5)
             Code.AppendLine("A=D-A");
             Code.AppendLine("D=M");
-            Code.AppendLine("@R6");
-            Code.AppendLine("M=D"); //set R6 to ret address
+            Code.AppendLine("@R9");
+            Code.AppendLine("M=D"); //set R9 to ret address
 
             //make ARG a pointer to the memory address of pop()
             //1. pop current value off the stack (this should be the value that is returned from the current function)
@@ -791,13 +883,13 @@ namespace HackVMTranslator.Modules
             WritePushPop(Enumerations.CommandType.C_POP, "argument", 0);
 
             //restore SP to the callers SP (ARG + 1)
-            Code.AppendLine("@ARG");
-            Code.AppendLine("D=M");
+            Code.AppendLine("@14");    //register 14 will hold the value we need from the pop that just took place
+            Code.AppendLine("D=M+1");
             Code.AppendLine("@SP");
-            Code.AppendLine("M=D+1");
+            Code.AppendLine("M=D");
 
             //restore that
-            Code.AppendLine("@R5"); //R5 holds the frame pointer
+            Code.AppendLine("@R8"); //R8 holds the frame pointer
             Code.AppendLine("D=M"); 
             Code.AppendLine("@1");
             Code.AppendLine("A=D-A");
@@ -806,7 +898,7 @@ namespace HackVMTranslator.Modules
             Code.AppendLine("M=D");  //set THAT to frame - 1
 
                 //restore this
-            Code.AppendLine("@R5"); //R5 holds the frame pointer
+            Code.AppendLine("@R8"); //R8 holds the frame pointer
             Code.AppendLine("D=M");
             Code.AppendLine("@2");
             Code.AppendLine("A=D-A");
@@ -815,7 +907,7 @@ namespace HackVMTranslator.Modules
             Code.AppendLine("M=D");  //set THIS to frame - 2
 
             //restore arg
-            Code.AppendLine("@R5"); //R5 holds the frame pointer
+            Code.AppendLine("@R8"); //R8 holds the frame pointer
             Code.AppendLine("D=M");
             Code.AppendLine("@3");
             Code.AppendLine("A=D-A");
@@ -824,7 +916,7 @@ namespace HackVMTranslator.Modules
             Code.AppendLine("M=D");  //set ARG to frame - 3
 
             //restore lcl
-            Code.AppendLine("@R5"); //R5 holds the frame pointer
+            Code.AppendLine("@R8"); //R8 holds the frame pointer
             Code.AppendLine("D=M");
             Code.AppendLine("@4");
             Code.AppendLine("A=D-A");
@@ -832,7 +924,9 @@ namespace HackVMTranslator.Modules
             Code.AppendLine("@LCL");
             Code.AppendLine("M=D");  //set LCL to frame - 4
 
-           
+            Code.AppendLine("@R9"); //this register holds our return location that we stored above
+            Code.AppendLine("A=M");
+            Code.AppendLine("0;JMP"); //Jump to return value in the stack and continue execution
 
         }
 
@@ -860,16 +954,20 @@ namespace HackVMTranslator.Modules
              
              Code.AppendLine("@" + numLocals);
              Code.AppendLine("D=A");
-             Code.AppendLine("@" + GetLabelName("numLocals")); //declare ram space to hold my numLocals variable
+             //if D = 0 then skip this whole pushing 0 and looping mess
+             Code.AppendLine("@" + GetLabelName("noargs")); ;
+             Code.AppendLine("D;JEQ");
+             //else we'll push in default args as placeholders
+             Code.AppendLine("@R7"); //declare ram space to hold my numLocals variable
              Code.AppendLine("M=D");  //numLocals = numLocals
              WriteLabel("loopargs");   //begin loop
              WritePushPop(Enumerations.CommandType.C_PUSH, "constant", 0);  //push 0
-             Code.AppendLine("@" + GetLabelName("numLocals"));
+             Code.AppendLine("@R7");
              Code.AppendLine("M=M-1"); //decrement numLocals in RAM
              Code.AppendLine("D=M");
              Code.AppendLine("@" + GetLabelName("loopargs"));//if D > 0 then jump back to loopargs label
              Code.AppendLine("D;JGT");
-
+             WriteLabel("noargs"); //label to redirect to in case no args were passed in
         }
 
         public void Close()

@@ -21,6 +21,7 @@ namespace HackVMTranslator
     public partial class Form1 : Form
     {
         private string _fileName = "";
+        private string _folderName = "";
 
         public Form1()
         {
@@ -31,14 +32,17 @@ namespace HackVMTranslator
         {
 
 
-            var dlg = new OpenFileDialog();
+            //var dlg = new OpenFileDialog();
+            var dlg = new FolderBrowserDialog();
 
-            dlg.Filter = "Virtual Machine (*.vm)|*.vm";
+            //dlg.Filter = "Virtual Machine (*.vm)|*.vm";
 
             if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                _fileName = dlg.FileName;
-                lblStatus.Text = "File Loaded Successfully: " + _fileName;
+                //_fileName = dlg.FileName;
+                //lblStatus.Text = "File Loaded Successfully: " + _fileName;
+                _folderName = dlg.SelectedPath;
+                lblStatus.Text = "Folder Loaded: " + _folderName;
                 frmStatus.Refresh();
             }
 
@@ -113,12 +117,25 @@ namespace HackVMTranslator
             frmStatus.Refresh();
         }
 
-        private void ParseFile()
+        private void ParseFolder()
+        {
+            var cw = new CodeWriter();
+            cw.WriteInit(); //write init code. Set SP = 256 and call Sys.init
+
+            foreach (var file in System.IO.Directory.GetFiles(_folderName, "*.vm"))
+            {
+                _fileName = file;
+
+                ParseFile(cw);
+            }
+        }
+
+        private void ParseFile(CodeWriter cw)
         {
             if (!string.IsNullOrEmpty(_fileName))
             {
                 var prsr = new Parser(_fileName);
-                var cw = new CodeWriter();
+                //var cw = new CodeWriter();
                 cw.SetFileName(System.IO.Path.GetFileName(_fileName));
                 var sbuilder = new StringBuilder(); //used to hold our output
                 var sbsource = new StringBuilder();
@@ -160,6 +177,7 @@ namespace HackVMTranslator
                     }
                     else if (prsr.CommandType == Enums.Enumerations.CommandType.C_CALL)
                     {
+                        //cw.SetFunctionName(prsr.Arg1.Split('.')[1]);
                         cw.WriteCall(prsr.Arg1, int.Parse(prsr.Arg2));
                     }
                     else if (prsr.CommandType == Enums.Enumerations.CommandType.C_FUNCTION)
@@ -182,7 +200,20 @@ namespace HackVMTranslator
         {
             //read one line at a time from rtbSource and parse it with appropriate modules
             rtbDestination.Clear();
-            ParseFile();
+
+            //refactor to include looping through files in folder
+            //for each .vm file{set _fileName = vm filename and execute ParseFile()}
+            //cw.WriteInit();
+
+            //foreach(var file in System.IO.Directory.GetFiles(_folderName,"*.vm"))
+            //{
+            //    _fileName = file;
+
+            //    ParseFile();
+            //}
+
+            ParseFolder();
+           
 
 
         }

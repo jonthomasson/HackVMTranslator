@@ -63,7 +63,7 @@ namespace HackVMTranslator
 
         private void ProcessCommand(string command)
         {
-            if (command.Contains("add") || command.Contains("sub") || command.Contains("neg") || command.Contains("eq") || command.Contains("gt") || command.Contains("lt") || command.Contains("and") || command.Contains("or") || command.Contains("not"))
+            if ((command.Contains("add") || command.Contains("sub") || command.Contains("neg") || command.Contains("eq") || command.Contains("gt") || command.Contains("lt") || command.Contains("and") || command.Contains("or") || command.Contains("not")) && !command.Contains("function") && !command.Contains("call"))
             {
                 CommandType = Enums.Enumerations.CommandType.C_ARITHMETIC;
                 Arg1 = command;
@@ -106,6 +106,12 @@ namespace HackVMTranslator
             else if (command.Contains("return"))
             {
                 CommandType = Enums.Enumerations.CommandType.C_RETURN;
+            }
+            else if (command.Contains("call"))
+            {
+                CommandType = Enums.Enumerations.CommandType.C_CALL;
+                Arg1 = command.Split(' ')[1];  //the function name
+                Arg2 = command.Split(' ')[2];  //this should be the number of arguments already passed
             }
 
         }
